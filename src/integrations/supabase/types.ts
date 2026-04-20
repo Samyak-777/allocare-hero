@@ -14,16 +14,277 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      assignments: {
+        Row: {
+          accepted_at: string | null
+          checked_in_at: string | null
+          completed_at: string | null
+          created_at: string
+          distance_km: number | null
+          explanation: string | null
+          id: string
+          match_score: number
+          need_id: string
+          proof_url: string | null
+          status: Database["public"]["Enums"]["assignment_status"]
+          volunteer_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          checked_in_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          distance_km?: number | null
+          explanation?: string | null
+          id?: string
+          match_score?: number
+          need_id: string
+          proof_url?: string | null
+          status?: Database["public"]["Enums"]["assignment_status"]
+          volunteer_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          checked_in_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          distance_km?: number | null
+          explanation?: string | null
+          id?: string
+          match_score?: number
+          need_id?: string
+          proof_url?: string | null
+          status?: Database["public"]["Enums"]["assignment_status"]
+          volunteer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_need_id_fkey"
+            columns: ["need_id"]
+            isOneToOne: false
+            referencedRelation: "need_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      need_reports: {
+        Row: {
+          affected_count: number | null
+          created_at: string
+          first_reported_at: string
+          id: string
+          issue_type: Database["public"]["Enums"]["issue_type"]
+          language_detected: string | null
+          lat: number
+          lng: number
+          location_text: string | null
+          org_id: string | null
+          raw_text: string
+          recommended_volunteer_count: number | null
+          reporter_id: string | null
+          required_skills: string[] | null
+          severity_score: number
+          source: string
+          status: Database["public"]["Enums"]["need_status"]
+          summary: string | null
+          updated_at: string
+          urgency_label: Database["public"]["Enums"]["urgency_label"]
+          urgency_score: number
+          zone: string
+        }
+        Insert: {
+          affected_count?: number | null
+          created_at?: string
+          first_reported_at?: string
+          id?: string
+          issue_type?: Database["public"]["Enums"]["issue_type"]
+          language_detected?: string | null
+          lat: number
+          lng: number
+          location_text?: string | null
+          org_id?: string | null
+          raw_text: string
+          recommended_volunteer_count?: number | null
+          reporter_id?: string | null
+          required_skills?: string[] | null
+          severity_score?: number
+          source?: string
+          status?: Database["public"]["Enums"]["need_status"]
+          summary?: string | null
+          updated_at?: string
+          urgency_label?: Database["public"]["Enums"]["urgency_label"]
+          urgency_score?: number
+          zone: string
+        }
+        Update: {
+          affected_count?: number | null
+          created_at?: string
+          first_reported_at?: string
+          id?: string
+          issue_type?: Database["public"]["Enums"]["issue_type"]
+          language_detected?: string | null
+          lat?: number
+          lng?: number
+          location_text?: string | null
+          org_id?: string | null
+          raw_text?: string
+          recommended_volunteer_count?: number | null
+          reporter_id?: string | null
+          required_skills?: string[] | null
+          severity_score?: number
+          source?: string
+          status?: Database["public"]["Enums"]["need_status"]
+          summary?: string | null
+          updated_at?: string
+          urgency_label?: Database["public"]["Enums"]["urgency_label"]
+          urgency_score?: number
+          zone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "need_reports_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          city: string | null
+          created_at: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          available: boolean | null
+          created_at: string
+          email: string | null
+          full_name: string
+          home_lat: number | null
+          home_lng: number | null
+          hours_contributed: number | null
+          id: string
+          max_distance_km: number | null
+          org_id: string | null
+          skills: string[] | null
+          streak_days: number | null
+          tasks_completed: number | null
+          updated_at: string
+        }
+        Insert: {
+          available?: boolean | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          home_lat?: number | null
+          home_lng?: number | null
+          hours_contributed?: number | null
+          id: string
+          max_distance_km?: number | null
+          org_id?: string | null
+          skills?: string[] | null
+          streak_days?: number | null
+          tasks_completed?: number | null
+          updated_at?: string
+        }
+        Update: {
+          available?: boolean | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          home_lat?: number | null
+          home_lng?: number | null
+          hours_contributed?: number | null
+          id?: string
+          max_distance_km?: number | null
+          org_id?: string | null
+          skills?: string[] | null
+          streak_days?: number | null
+          tasks_completed?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "coordinator" | "volunteer"
+      assignment_status:
+        | "suggested"
+        | "accepted"
+        | "declined"
+        | "checked_in"
+        | "completed"
+      issue_type:
+        | "food"
+        | "water"
+        | "health"
+        | "housing"
+        | "education"
+        | "safety"
+        | "other"
+      need_status: "open" | "assigned" | "in_progress" | "resolved" | "closed"
+      urgency_label: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +411,26 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "coordinator", "volunteer"],
+      assignment_status: [
+        "suggested",
+        "accepted",
+        "declined",
+        "checked_in",
+        "completed",
+      ],
+      issue_type: [
+        "food",
+        "water",
+        "health",
+        "housing",
+        "education",
+        "safety",
+        "other",
+      ],
+      need_status: ["open", "assigned", "in_progress", "resolved", "closed"],
+      urgency_label: ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+    },
   },
 } as const
