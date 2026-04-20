@@ -132,6 +132,15 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+@theme inline {
+  --color-allo-blue: #1A56DB;
+  --color-allo-blue-deep: #1E3A8A;
+  --color-allo-green: #0E9F6E;
+  --color-allo-amber: #E3A008;
+  --color-allo-red: #E02424;
+  --color-allo-orange: #F97316;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -140,5 +149,14 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, sans-serif;
   }
 }
+
+@keyframes allo-pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.85; }
+  70% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+.allo-pulse-ring { animation: allo-pulse-ring 2s ease-out infinite; }
+
