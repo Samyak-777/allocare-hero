@@ -14,6 +14,7 @@ export type HeatNeed = {
   issue_type: string;
   affected_count: number | null;
   summary: string | null;
+  severity_score?: number | null;
 };
 
 // Mumbai bbox roughly: lat 18.89–19.27, lng 72.77–72.99
