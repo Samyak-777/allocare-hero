@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageLayout } from "@/components/PageLayout";
+import { AnimatedCounter } from "@/components/AnimatedCounter";
+import { NeedCardSkeleton } from "@/components/Skeleton";
 
 export const Route = createFileRoute("/volunteer")({
   head: () => ({ meta: [{ title: "Volunteer Feed — AlloCare" }] }),
@@ -179,7 +181,11 @@ function VolunteerPage() {
                   <span className="text-[11px] text-slate-500">{n.zone}{n.dist != null && ` · ${n.dist.toFixed(1)} km`}</span>
                 </div>
                 <div className="mt-2 text-base font-semibold text-slate-900">{n.summary ?? n.issue_type}</div>
-                {n.affected_count != null && <div className="text-xs text-slate-600">Your effort helps ~{n.affected_count} people.</div>}
+                {n.affected_count != null && (
+                  <div className="mt-1 text-sm font-semibold text-[#0E9F6E]">
+                    ~{n.affected_count} families need your help today
+                  </div>
+                )}
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {n.required_skills.map((s) => <span key={s} className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">{s}</span>)}
                 </div>
@@ -196,11 +202,14 @@ function VolunteerPage() {
         {scorecard && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-6" onClick={() => setScorecard(null)}>
             <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-[#0E9F6E] to-[#1A56DB] text-3xl text-white shadow-lg">🏅</div>
-              <h2 className="mt-4 text-xl font-bold text-slate-900">Task accepted!</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Your effort will help {scorecard.need.affected_count ?? "a community"} {scorecard.need.affected_count ? "people" : ""} in {scorecard.need.zone}.
-              </p>
+              <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-[#0E9F6E] to-[#1A56DB] text-3xl text-white shadow-lg animate-[scale-in_0.4s_ease-out]">🏅</div>
+              <h2 className="mt-4 text-lg font-semibold text-slate-600">You helped</h2>
+              <AnimatedCounter
+                target={scorecard.need.affected_count ?? 1}
+                suffix={scorecard.need.affected_count ? " families" : " community"}
+                className="mt-1 block bg-gradient-to-r from-[#0E9F6E] to-[#1A56DB] bg-clip-text text-5xl font-extrabold text-transparent"
+              />
+              <p className="mt-1 text-sm text-slate-600">in {scorecard.need.zone} today.</p>
               <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
                 Streak: <b>{profile?.streak_days ?? 0} days</b> · Tasks: <b>{profile?.tasks_completed ?? 0}</b>
               </div>
