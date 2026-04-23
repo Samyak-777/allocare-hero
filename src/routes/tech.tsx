@@ -27,7 +27,6 @@ const STACK = [
   { name: "Document AI", use: "Phase 2 — structured extraction from NGO form templates", critical: "Upgrade from Vision OCR." },
   { name: "Vertex AI AutoML", use: "Phase 2 — predict next-week high-urgency zones", critical: "Pre-positioning narrative." },
   { name: "BigQuery", use: "Phase 2 — cross-NGO district-level trend analytics", critical: "Shows enterprise scale planning." },
-  { name: "Flutter (Google SDK)", use: "Single codebase for NGO web dashboard + volunteer mobile", critical: "Google judges reward Flutter usage." },
 ];
 
 const SDGS = [
