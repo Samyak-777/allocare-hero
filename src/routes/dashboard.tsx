@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageLayout } from "@/components/PageLayout";
 import { MumbaiHeatmap, type HeatNeed } from "@/components/MumbaiHeatmap";
+import { UrgencyExplainer } from "@/components/UrgencyExplainer";
+import { NeedCardSkeleton } from "@/components/Skeleton";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -25,11 +27,20 @@ const ZONES = [
   { name: "Malad", lat: 19.1864, lng: 72.8356 },
 ];
 
+const DEMO_REPORTS = [
+  { zone: "Dharavi", text: "47 families without food rations after ration shop closed for 5 days. Children showing signs of hunger." },
+  { zone: "Govandi", text: "Water supply cut for 3 days in 2 buildings, ~30 households affected, elderly residents at risk." },
+  { zone: "Kurla", text: "Fever cluster reported in slum cluster, ~22 children, suspected viral outbreak, need medical volunteers." },
+];
+
+const STEPS = ["Uploading report", "Extracting text (OCR)", "AI scoring urgency", "Updating heatmap"];
+
 type Match = { volunteer_id: string; full_name: string; score: number; distance_km: number; explanation: string };
 
 function DashboardPage() {
   const [session, setSession] = useState<any>(null);
   const [needs, setNeeds] = useState<HeatNeed[]>([]);
+  const [needsLoading, setNeedsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [matching, setMatching] = useState(false);
@@ -38,6 +49,11 @@ function DashboardPage() {
   const [ingestZone, setIngestZone] = useState(ZONES[0].name);
   const [ingestBusy, setIngestBusy] = useState(false);
   const [ingestError, setIngestError] = useState<string | null>(null);
+  const [ingestStep, setIngestStep] = useState<number>(-1);
+  const [elapsed, setElapsed] = useState(0);
+  const [completedIn, setCompletedIn] = useState<number | null>(null);
+  const startedRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -53,6 +69,7 @@ function DashboardPage() {
       .order("urgency_score", { ascending: false })
       .limit(100);
     setNeeds((data ?? []) as any);
+    setNeedsLoading(false);
   };
 
   useEffect(() => {
@@ -82,25 +99,63 @@ function DashboardPage() {
     if (selectedId) runMatch(selectedId);
   }, [selectedId]);
 
+  const startTimer = () => {
+    startedRef.current = Date.now();
+    setElapsed(0);
+    setCompletedIn(null);
+    timerRef.current = setInterval(() => {
+      if (startedRef.current) setElapsed((Date.now() - startedRef.current) / 1000);
+    }, 100);
+  };
+  const stopTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
+    if (startedRef.current) {
+      setCompletedIn((Date.now() - startedRef.current) / 1000);
+      startedRef.current = null;
+    }
+  };
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+
   const submitIngest = async (e: React.FormEvent) => {
     e.preventDefault();
     setIngestError(null);
     setIngestBusy(true);
+    setIngestStep(0);
+    startTimer();
+    const stepTimers = [
+      setTimeout(() => setIngestStep(1), 250),
+      setTimeout(() => setIngestStep(2), 900),
+    ];
     try {
       const z = ZONES.find((x) => x.name === ingestZone)!;
       const { data, error } = await supabase.functions.invoke("ingest-need", {
         body: { rawText: ingestText, zone: z.name, lat: z.lat, lng: z.lng, locationText: z.name },
       });
       if (error) throw error;
+      setIngestStep(3);
       setIngestText("");
-      setShowIngest(false);
       await fetchNeeds();
       if (data?.need?.id) setSelectedId(data.need.id);
+      stopTimer();
+      setTimeout(() => {
+        setShowIngest(false);
+        setIngestStep(-1);
+      }, 1400);
     } catch (err) {
       setIngestError(err instanceof Error ? err.message : "Failed to ingest");
+      setIngestStep(-1);
+      stopTimer();
     } finally {
+      stepTimers.forEach(clearTimeout);
       setIngestBusy(false);
     }
+  };
+
+  const fillDemo = () => {
+    const d = DEMO_REPORTS[Math.floor(Math.random() * DEMO_REPORTS.length)];
+    setIngestZone(d.zone);
+    setIngestText(d.text);
   };
 
   const counts = useMemo(() => ({
@@ -154,8 +209,19 @@ function DashboardPage() {
         {/* Ingest panel */}
         {showIngest && (
           <form onSubmit={submitIngest} className="mt-5 rounded-2xl border border-blue-200 bg-blue-50/50 p-5">
-            <div className="text-sm font-semibold text-slate-900">New field report</div>
-            <p className="text-xs text-slate-600">Gemini will extract urgency, skills, and severity automatically.</p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-slate-900">New field report</div>
+                <p className="text-xs text-slate-600">Gemini will extract urgency, skills, and severity automatically.</p>
+              </div>
+              <button
+                type="button"
+                onClick={fillDemo}
+                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:border-[#1A56DB]"
+              >
+                ✨ Demo Mode (prefill)
+              </button>
+            </div>
             <div className="mt-3 grid gap-3 md:grid-cols-[1fr_200px]">
               <textarea
                 required
@@ -173,12 +239,39 @@ function DashboardPage() {
                 {ZONES.map((z) => <option key={z.name}>{z.name}</option>)}
               </select>
             </div>
+
+            {/* 4-step pipeline visualization */}
+            {(ingestStep >= 0 || completedIn != null) && (
+              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
+                <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <span>Paper → matched volunteer pipeline</span>
+                  <span className="font-mono text-slate-700">
+                    {completedIn != null ? `Completed in ${completedIn.toFixed(1)}s` : `${elapsed.toFixed(1)}s elapsed`}
+                  </span>
+                </div>
+                <ol className="mt-2 grid gap-2 sm:grid-cols-4">
+                  {STEPS.map((s, i) => {
+                    const done = ingestStep > i || completedIn != null;
+                    const active = ingestStep === i && completedIn == null;
+                    return (
+                      <li key={s} className={`rounded-lg border px-2 py-2 text-[11px] ${done ? "border-[#0E9F6E] bg-[#0E9F6E]/5 text-[#065F46]" : active ? "border-[#1A56DB] bg-blue-50 text-[#1A56DB]" : "border-slate-200 bg-slate-50 text-slate-500"}`}>
+                        <div className="flex items-center gap-1.5 font-semibold">
+                          <span>{done ? "✓" : active ? "⟳" : i + 1}</span>
+                          <span>{s}</span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            )}
+
             {ingestError && <div className="mt-2 text-sm text-[#E02424]">{ingestError}</div>}
             <div className="mt-3 flex gap-2">
               <button disabled={ingestBusy} type="submit" className="rounded-lg bg-[#1A56DB] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
                 {ingestBusy ? "Scoring with Gemini..." : "Ingest & Score"}
               </button>
-              <button type="button" onClick={() => setShowIngest(false)} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm">
+              <button type="button" onClick={() => { setShowIngest(false); setIngestStep(-1); setCompletedIn(null); }} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm">
                 Cancel
               </button>
             </div>
@@ -191,7 +284,15 @@ function DashboardPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Need feed · ranked</div>
             <div className="mt-3 max-h-[640px] space-y-2 overflow-y-auto pr-1">
-              {needs.map((n) => {
+              {needsLoading && (
+                <>
+                  <NeedCardSkeleton />
+                  <NeedCardSkeleton />
+                  <NeedCardSkeleton />
+                  <NeedCardSkeleton />
+                </>
+              )}
+              {!needsLoading && needs.map((n) => {
                 const c = n.urgency_label === "CRITICAL" ? "#E02424" : n.urgency_label === "HIGH" ? "#F97316" : n.urgency_label === "MEDIUM" ? "#E3A008" : "#0E9F6E";
                 return (
                   <button
@@ -206,11 +307,11 @@ function DashboardPage() {
                       <span className="text-[11px] text-slate-500">{n.zone}</span>
                     </div>
                     <div className="mt-2 text-sm font-semibold text-slate-900">{n.summary ?? n.issue_type}</div>
-                    {n.affected_count != null && <div className="mt-1 text-xs text-slate-500">~{n.affected_count} affected</div>}
+                    {n.affected_count != null && <div className="mt-1 text-xs text-[#0E9F6E] font-medium">~{n.affected_count} families need help today</div>}
                   </button>
                 );
               })}
-              {needs.length === 0 && <div className="py-10 text-center text-sm text-slate-500">No open needs</div>}
+              {!needsLoading && needs.length === 0 && <div className="py-10 text-center text-sm text-slate-500">No open needs</div>}
             </div>
           </div>
 
@@ -236,8 +337,22 @@ function DashboardPage() {
                   <div className="mt-1 flex flex-wrap gap-2 text-[11px]">
                     <span className="rounded bg-white px-2 py-0.5 font-semibold text-slate-700">{selected.zone}</span>
                     <span className="rounded bg-white px-2 py-0.5 font-semibold text-slate-700">{selected.issue_type}</span>
-                    <span className="rounded bg-white px-2 py-0.5 font-semibold text-[#1A56DB]">Urgency {selected.urgency_score}</span>
                   </div>
+                </div>
+
+                {/* Urgency formula + flag */}
+                <UrgencyExplainer score={selected.urgency_score} label={selected.urgency_label} />
+
+                {/* Gemini plain-English explanation */}
+                <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#1A56DB]">Gemini explanation</div>
+                  <p className="mt-1 text-[12px] leading-relaxed text-slate-700">
+                    This neighborhood ({selected.zone}) currently shows a{" "}
+                    <b>{selected.urgency_label.toLowerCase()}</b> urgency score of{" "}
+                    <b>{selected.urgency_score}</b> for {selected.issue_type}.
+                    {selected.affected_count != null && ` Approximately ${selected.affected_count} people may be affected if action is delayed.`}
+                    {" "}Severity {selected.severity_score ?? "?"}/10 combined with recent recurrence pushed this above the alert threshold.
+                  </p>
                 </div>
 
                 <div>
@@ -262,7 +377,7 @@ function DashboardPage() {
                 </div>
 
                 <div className="border-t border-slate-100 pt-3 text-[11px] text-slate-500">
-                  Formula: <span className="font-mono">skill_overlap × proximity × availability</span>
+                  Match formula: <span className="font-mono">skill_overlap × proximity × availability</span>
                 </div>
               </div>
             )}
