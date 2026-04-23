@@ -213,7 +213,7 @@ export function Hero() {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500"
           >
-            <span className="font-medium">Built for Google Solution Challenge 2026</span>
+            <span className="font-medium">{"\n"}</span>
             <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:inline-block" />
             <div className="flex items-center gap-1.5">
               <span className="text-slate-400">Aligned with</span>

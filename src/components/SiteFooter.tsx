@@ -14,7 +14,7 @@ export function SiteFooter() {
             NGOs serving underserved communities.
           </p>
           <p className="mt-4 text-xs text-slate-500">
-            Built for Google Solution Challenge 2026 · Hack2Skill × GDG on Campus × Google
+            {"\n"}
           </p>
         </div>
         <div>
