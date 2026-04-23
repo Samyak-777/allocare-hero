@@ -32,7 +32,7 @@ export function SiteFooter() {
             <li><Link to="/problem" className="hover:text-[#1A56DB]">Problem</Link></li>
             <li><Link to="/research" className="hover:text-[#1A56DB]">Research</Link></li>
             <li><Link to="/tech" className="hover:text-[#1A56DB]">Tech Stack</Link></li>
-            <li><Link to="/team" className="hover:text-[#1A56DB]">Team</Link></li>
+            
           </ul>
         </div>
       </div>
