@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VolunteerRouteImport } from './routes/volunteer'
 import { Route as TechRouteImport } from './routes/tech'
-import { Route as TeamRouteImport } from './routes/team'
 import { Route as ResearchRouteImport } from './routes/research'
 import { Route as ProblemRouteImport } from './routes/problem'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
@@ -28,11 +27,6 @@ const VolunteerRoute = VolunteerRouteImport.update({
 const TechRoute = TechRouteImport.update({
   id: '/tech',
   path: '/tech',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TeamRoute = TeamRouteImport.update({
-  id: '/team',
-  path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResearchRoute = ResearchRouteImport.update({
@@ -79,7 +73,6 @@ export interface FileRoutesByFullPath {
   '/how-it-works': typeof HowItWorksRoute
   '/problem': typeof ProblemRoute
   '/research': typeof ResearchRoute
-  '/team': typeof TeamRoute
   '/tech': typeof TechRoute
   '/volunteer': typeof VolunteerRoute
 }
@@ -91,7 +84,6 @@ export interface FileRoutesByTo {
   '/how-it-works': typeof HowItWorksRoute
   '/problem': typeof ProblemRoute
   '/research': typeof ResearchRoute
-  '/team': typeof TeamRoute
   '/tech': typeof TechRoute
   '/volunteer': typeof VolunteerRoute
 }
@@ -104,7 +96,6 @@ export interface FileRoutesById {
   '/how-it-works': typeof HowItWorksRoute
   '/problem': typeof ProblemRoute
   '/research': typeof ResearchRoute
-  '/team': typeof TeamRoute
   '/tech': typeof TechRoute
   '/volunteer': typeof VolunteerRoute
 }
@@ -118,7 +109,6 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/problem'
     | '/research'
-    | '/team'
     | '/tech'
     | '/volunteer'
   fileRoutesByTo: FileRoutesByTo
@@ -130,7 +120,6 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/problem'
     | '/research'
-    | '/team'
     | '/tech'
     | '/volunteer'
   id:
@@ -142,7 +131,6 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/problem'
     | '/research'
-    | '/team'
     | '/tech'
     | '/volunteer'
   fileRoutesById: FileRoutesById
@@ -155,7 +143,6 @@ export interface RootRouteChildren {
   HowItWorksRoute: typeof HowItWorksRoute
   ProblemRoute: typeof ProblemRoute
   ResearchRoute: typeof ResearchRoute
-  TeamRoute: typeof TeamRoute
   TechRoute: typeof TechRoute
   VolunteerRoute: typeof VolunteerRoute
 }
@@ -174,13 +161,6 @@ declare module '@tanstack/react-router' {
       path: '/tech'
       fullPath: '/tech'
       preLoaderRoute: typeof TechRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/team': {
-      id: '/team'
-      path: '/team'
-      fullPath: '/team'
-      preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/research': {
@@ -243,7 +223,6 @@ const rootRouteChildren: RootRouteChildren = {
   HowItWorksRoute: HowItWorksRoute,
   ProblemRoute: ProblemRoute,
   ResearchRoute: ResearchRoute,
-  TeamRoute: TeamRoute,
   TechRoute: TechRoute,
   VolunteerRoute: VolunteerRoute,
 }

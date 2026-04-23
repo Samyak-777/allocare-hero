@@ -8,7 +8,7 @@ const NAV = [
   { to: "/how-it-works", label: "How It Works" },
   { to: "/research", label: "Research" },
   { to: "/tech", label: "Tech Stack" },
-  { to: "/team", label: "Team" },
+  
 ] as const;
 
 export function SiteNav() {
